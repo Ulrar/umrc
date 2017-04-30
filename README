@@ -9,7 +9,7 @@ modified version of it here. See https://github.com/syucream/hastodon for the or
 
 You need to install ghc and cabal-install first, then
 
-```sh
+```bash
 $ cabal update
 $ cabal install --only-dependencies
 $ cabal build
@@ -23,7 +23,7 @@ You need to register the app on mastodon and get a client id, secret and a token
 You can use https://tinysubversions.com/notes/mastodon-bot/ for that, and use those ids
 in the config file :
 
-```txt
+```
 [DEFAULT]
 clientId = ID
 clientSecret = Another ID
