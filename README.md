@@ -36,12 +36,13 @@ chan = #umrc
 admins = Ulrar, Someone else
 ```
 
+See the included config.ini for an (inactive) example.
 Save that somewhere as config.ini
 
 # Running
 
 Copy the binary and the config somewhere, and you can just run it with the config as a parameter.
-For example, if you copies the binary in /usr/local/bin and the config in /etc :
+For example, if you copied the binary in /usr/local/bin and the config in /etc :
 ```sh
 /usr/local/bin/umrc /etc/umrc.ini
 ```
