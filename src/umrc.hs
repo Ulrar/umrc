@@ -13,6 +13,7 @@ import Control.Concurrent.MVar
 import Control.Concurrent.Timer             (repeatedStart, newTimer)
 import Control.Concurrent.Suspend.Lifted    (sDelay)
 import Control.Monad                        (mapM_, when)
+import Control.Exception                    (try)
 import System.Environment                   (getArgs)
 import Text.HTML.TagSoup                    (parseTags, innerText)
 import Data.Either.Utils                    (forceEither)
@@ -78,10 +79,13 @@ onMessage client admins s m
     if L.elem nick admins
     then do
       let id = (B.drop 1 $ B.dropWhile (/= ' ') msg)
-      res <- boost client ((read $ B.unpack id) :: Int)
-      case res of
-        Left err -> sendMsg s chan $ B.pack $ show err
-        Right _  -> sendMsg s chan "Boosted !"
+      case reads (B.unpack id) :: [(Int,String)] of
+        [(id', "")] -> do
+          res <- boost client id'
+          case res of
+            Left err -> sendMsg s chan $ B.pack $ show err
+            Right _  -> sendMsg s chan "Boosted !"
+        _ -> sendMsg s chan "Error : Boost requires an id as a parameter"
     else
       sendMsg s chan "Unauthorized"
   | otherwise = return ()
