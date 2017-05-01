@@ -57,6 +57,11 @@ toot client msg = do
   result <- postStatus msg client
   return result
 
+-- Boost something
+boost client id = do
+  result <- postReblog id client
+  return result
+
 -- Callback when someone talks on IRC
 onMessage client admins s m
   | B.isPrefixOf "!toot" msg =
@@ -69,6 +74,16 @@ onMessage client admins s m
         Right _  -> sendMsg s chan "Tooted !"
     else
       sendMsg s chan "Unauthorized"
+  | B.isPrefixOf "!boost" msg =
+    if L.elem nick admins
+    then do
+      let id = (B.drop 1 $ B.dropWhile (/= ' ') msg)
+      res <- boost client ((read $ B.unpack id) :: Int)
+      case res of
+        Left err -> sendMsg s chan $ B.pack $ show err
+        Right _  -> sendMsg s chan "Boosted !"
+    else
+      sendMsg s chan "Unauthorized"
   | otherwise = return ()
   where chan = fromJust $ mChan m
         msg = mMsg m
@@ -79,7 +94,7 @@ onMessage client admins s m
 onNumeric client chan s m
   | mCode m == "001" = do
       timer <- newTimer
-      repeatedStart timer (getNotifs client chan s) $ sDelay 5
+      repeatedStart timer (getNotifs client chan s) $ sDelay 60
       return ()
   | otherwise = return ()
 
