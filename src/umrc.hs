@@ -38,7 +38,8 @@ getNotifs client chan s = do
               return ()
             "reblog" -> do
               when (isJust mstatus) $ do
-                let txt = statusContent $ fromJust mstatus
+                let t = parseTags $ statusContent $ fromJust mstatus
+                let txt = innerText t
                 sendMsg s chan $ B.pack (nick ++ " boosted : " ++ txt)
               return ()
             "mention" -> do
