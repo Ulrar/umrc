@@ -10,10 +10,11 @@ import Data.Maybe
 import Data.Ini
 import Web.Hastodon
 import Control.Concurrent.MVar
+import Network.HTTP.Simple                  (HttpException)
 import Control.Concurrent.Timer             (repeatedStart, newTimer)
 import Control.Concurrent.Suspend.Lifted    (sDelay)
 import Control.Monad                        (mapM_, when)
-import Control.Exception                    (try)
+import Control.Exception                    (catch)
 import System.Environment                   (getArgs)
 import Text.HTML.TagSoup                    (parseTags, innerText)
 import Data.Either.Utils                    (forceEither)
@@ -99,7 +100,7 @@ onMessage client admins s m
 onNumeric client chan s m
   | mCode m == "001" = do
       timer <- newTimer
-      repeatedStart timer (getNotifs client chan s) $ sDelay 60
+      repeatedStart timer (catch (getNotifs client chan s) (\x -> let _ = (x :: HttpException) in putStrLn "Error when trying to connect to mastodon")) $ sDelay 60
       return ()
   | otherwise = return ()
 
