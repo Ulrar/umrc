@@ -33,6 +33,7 @@ getNotifs client chan s = do
          let acc = notificationAccount n
          let nick = accountAcct acc
          let dn = accountDisplayName acc
+         let id = show $ accountId acc
          let mstatus = notificationStatus n
          case notificationType n of
             "follow" -> do
@@ -42,13 +43,13 @@ getNotifs client chan s = do
               when (isJust mstatus) $ do
                 let t = parseTags $ statusContent $ fromJust mstatus
                 let txt = innerText t
-                sendMsg s chan $ B.pack (dn ++ "(" ++ nick ++ ")" ++ " boosted : " ++ txt)
+                sendMsg s chan $ B.pack (dn ++ "(" ++ nick ++ ")" ++ " boosted : " ++ txt ++ "(id : " ++ id ++ ")")
               return ()
             "mention" -> do
               when (isJust mstatus) $ do
                 let t = parseTags $ statusContent $ fromJust mstatus
                 let txt = innerText t
-                sendMsg s chan $ B.pack (dn ++ "(" ++ nick ++ ")" ++ " : " ++ txt)
+                sendMsg s chan $ B.pack (dn ++ "(" ++ nick ++ ")" ++ " : " ++ txt ++ "(id : " ++ id ++ ")")
               return ()
             _ -> return ()
         )
