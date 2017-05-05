@@ -37,6 +37,7 @@ module Web.Hastodon
   , getRebloggedBy
   , getFavoritedBy
   , postStatus
+  , postReplyStatus
   , postReblog
   , postUnreblog
   , postFavorite
@@ -557,6 +558,11 @@ getFavoritedBy id client = do
 postStatus :: String -> HastodonClient -> IO (Either JSONException Status)
 postStatus status client = do
   res <- postAndGetHastodonResponseJSON pStatuses [(Char8.pack "status", Char8.pack status)] client
+  return (getResponseBody res :: Either JSONException Status)
+
+postReplyStatus :: String -> Int -> HastodonClient -> IO (Either JSONException Status)
+postReplyStatus status id client = do
+  res <- postAndGetHastodonResponseJSON pStatuses [(Char8.pack "status", Char8.pack status), (Char8.pack "in_reply_to_id", Char8.pack $ show id)] client
   return (getResponseBody res :: Either JSONException Status)
 
 postReblog :: Int -> HastodonClient -> IO (Either JSONException Status)

@@ -57,26 +57,29 @@ getNotifs client chan s = do
       postNotificationsClear client
       return ()
 
--- Toot something
-toot client msg = do
-  result <- postStatus msg client
-  return result
-
--- Boost something
-boost client id = do
-  result <- postReblog id client
-  return result
-
 -- Callback when someone talks on IRC
 onMessage client admins s m
   | B.isPrefixOf "!toot" msg =
     if L.elem nick admins
     then do
       let tmsg = (B.drop 1 $ B.dropWhile (/= ' ') msg)
-      res <- toot client $ B.unpack tmsg
+      res <- postStatus (B.unpack tmsg) client
       case res of
         Left err -> sendMsg s chan $ B.pack $ show err
         Right _  -> sendMsg s chan "Tooted !"
+    else
+      sendMsg s chan "Unauthorized"
+  | B.isPrefixOf "!replytoot" msg =
+    if L.elem nick admins
+    then do
+      let id = B.drop 1 $ B.dropWhile (/= ' ') msg
+      case reads (B.unpack id) :: [(Int,String)] of
+        [(id', repl)] -> do
+          res <- postReplyStatus repl id' client
+          case res of
+            Left err -> sendMsg s chan $ B.pack $ show err
+            Right _  -> sendMsg s chan "Reply tooted !"
+        _ -> sendMsg s chan "Usage : !replytoot <id> <text>"
     else
       sendMsg s chan "Unauthorized"
   | B.isPrefixOf "!boost" msg =
@@ -85,11 +88,11 @@ onMessage client admins s m
       let id = (B.drop 1 $ B.dropWhile (/= ' ') msg)
       case reads (B.unpack id) :: [(Int,String)] of
         [(id', "")] -> do
-          res <- boost client id'
+          res <- postReblog id' client
           case res of
             Left err -> sendMsg s chan $ B.pack $ show err
             Right _  -> sendMsg s chan "Boosted !"
-        _ -> sendMsg s chan "Error : Boost requires an id as a parameter"
+        _ -> sendMsg s chan "Usage : !boost <id>"
     else
       sendMsg s chan "Unauthorized"
   | otherwise = return ()
