@@ -1,6 +1,13 @@
 umrc is a bot to allow using a Mastodon account from IRC.
-You can use !toot <text> to publish a new status, and it will display
-on the configured channel incomming notifications (follows, mentions ..)
+It will display on the configured channel incomming notifications (follows, mentions ..)
+
+Available commands are :
+
+```
+!toot <text>
+!replytoot <id> <text>
+!boost <id>
+```
 
 Thanks to @syucream for the Hastodon library, I'm using an (included) slightly
 modified version of it here. See https://github.com/syucream/hastodon for the original.
@@ -48,3 +55,6 @@ For example, if you copied the binary in /usr/local/bin and the config in /etc :
 ```
 
 You might want to write an init file to start it automatically at boot.
+I included a SysV init script in the init_scripts directory, you just need to copy the init.d
+content to your /etc/init.d and the default content to your /etc/default/ and adjust the values
+in there.
