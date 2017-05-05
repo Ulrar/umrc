@@ -1,0 +1,3 @@
+SCRIPT=/usr/local/bin/umrc
+CONFIG=/etc/umrc.ini
+RUNAS=umrc
