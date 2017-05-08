@@ -60,7 +60,7 @@ getNotifs client chan s = do
 
 -- Callback when someone talks on IRC
 onMessage client admins s m
-  | B.isPrefixOf "!toot" msg =
+  | B.isPrefixOf "|toot" msg =
     if L.elem nick admins
     then do
       let tmsg = (B.drop 1 $ B.dropWhile (/= ' ') msg)
@@ -70,7 +70,7 @@ onMessage client admins s m
         Right _  -> sendMsg s chan "Tooted !"
     else
       sendMsg s chan "Unauthorized"
-  | B.isPrefixOf "!replytoot" msg =
+  | B.isPrefixOf "|replytoot" msg =
     if L.elem nick admins
     then do
       let id = B.drop 1 $ B.dropWhile (/= ' ') msg
@@ -83,7 +83,7 @@ onMessage client admins s m
         _ -> sendMsg s chan "Usage : !replytoot <id> <text>"
     else
       sendMsg s chan "Unauthorized"
-  | B.isPrefixOf "!boost" msg =
+  | B.isPrefixOf "|boost" msg =
     if L.elem nick admins
     then do
       let id = (B.drop 1 $ B.dropWhile (/= ' ') msg)
