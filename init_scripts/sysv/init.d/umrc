@@ -23,18 +23,18 @@ start() {
     return 1
   fi
   echo 'Starting service…' >&2
-  local CMD="$SCRIPT \"$CONFIG\" & ;echo \$!"
+  local CMD="$SCRIPT \"$CONFIG\" & echo \$!"
   su -c "$CMD" $RUNAS > "$PIDFILE"
   echo 'Service started' >&2
 }
 
 stop() {
-  if [ ! -f "$PIDFILE" ] || ! kill -0 $(cat "$PIDFILE"); then
+  if [ ! -f "$PIDFILE" ] || ! kill -0 $(head -1 "$PIDFILE"); then
     echo 'Service not running' >&2
     return 1
   fi
   echo 'Stopping service…' >&2
-  kill -15 $(cat "$PIDFILE") && rm -f "$PIDFILE"
+  kill -15 $(head -1 "$PIDFILE") && rm -f "$PIDFILE"
   echo 'Service stopped' >&2
 }
 
@@ -45,7 +45,7 @@ case "$1" in
   stop)
     stop
     ;;
-  retart)
+  restart)
     stop
     start
     ;;
