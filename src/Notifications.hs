@@ -8,6 +8,14 @@ import Data.Maybe                           (isJust, fromJust)
 import Text.HTML.TagSoup                    (parseTags, innerText)
 import qualified Data.ByteString.Char8      as B
 
+buildNotifPrefix dispName nick action = dispName ++ " (" ++ nick ++ ") " ++ action
+
+dispStatus status action dn nick s chan = do
+  let t = parseTags $ statusContent status
+  let txt = innerText t
+  let id = show $ statusId status
+  sendMsg s chan $ B.pack $ (buildNotifPrefix dn nick action) ++ txt ++ " (id : " ++ id ++ ")"
+
 -- Connect to the API to get new notifs, print them on IRC then clear them
 getNotifs client chan s = do
   eNotifs <- getNotifications client
@@ -22,21 +30,15 @@ getNotifs client chan s = do
          let mstatus = notificationStatus n
          case notificationType n of
             "follow" -> do
-              sendMsg s chan $ B.pack (dn ++ " (" ++ nick ++ ")" ++ " started following")
+              sendMsg s chan $ B.pack $ buildNotifPrefix dn nick "started following"
               return ()
             "reblog" -> do
               when (isJust mstatus) $ do
-                let t = parseTags $ statusContent $ fromJust mstatus
-                let txt = innerText t
-                let id = show $ statusId $ fromJust mstatus
-                sendMsg s chan $ B.pack (dn ++ " (" ++ nick ++ ")" ++ " boosted : " ++ txt ++ "(id : " ++ id ++ ")")
+                dispStatus (fromJust mstatus) "boosted : " dn nick s chan
               return ()
             "mention" -> do
               when (isJust mstatus) $ do
-                let t = parseTags $ statusContent $ fromJust mstatus
-                let txt = innerText t
-                let id = show $ statusId $ fromJust mstatus
-                sendMsg s chan $ B.pack (dn ++ " (" ++ nick ++ ")" ++ " : " ++ txt ++ " (id : " ++ id ++ ")")
+                dispStatus (fromJust mstatus) "tooted : " dn nick s chan
               return ()
             _ -> return ()
         )
