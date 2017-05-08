@@ -41,18 +41,18 @@ boost client s msg chan = do
         Right _  -> sendMsg s chan "Boosted !"
     _ -> sendMsg s chan "Usage : !boost <id>"
 
-cmdIfAdmin admins nick s chan f =
+cmdIfAdmin admins nick s chan client msg f =
   if L.elem nick admins
   then
-    f chan
+    f client s msg chan
   else
     sendMsg s chan "Unauthorized"
 
 -- Callback when someone talks on IRC
 onMessage client admins s m
-  | B.isPrefixOf "|toot" msg = cmdIfAdmin admins nick s chan (toot client s msg)
-  | B.isPrefixOf "|replytoot" msg = cmdIfAdmin admins nick s chan (reply client s msg)
-  | B.isPrefixOf "|boost" msg = cmdIfAdmin admins nick s chan (boost client s msg)
+  | B.isPrefixOf "|toot" msg = cmdIfAdmin admins nick s chan client msg toot
+  | B.isPrefixOf "|replytoot" msg = cmdIfAdmin admins nick s chan client msg reply
+  | B.isPrefixOf "|boost" msg = cmdIfAdmin admins nick s chan client msg boost
   | otherwise = return ()
   where chan = fromJust $ mChan m
         msg = mMsg m
