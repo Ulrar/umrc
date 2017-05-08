@@ -2,16 +2,23 @@
 module Commands (onMessage) where
 
 import Data.Maybe                           (fromJust)
+import Network.HTTP.Types.Status            (statusCode, statusMessage)
 import Network.SimpleIRC                    (sendMsg, mChan, mNick, mMsg)
 import Web.Hastodon                         (postStatus, postReplyStatus, postReblog)
+import Network.HTTP.Simple                  (JSONException(JSONParseException), getResponseStatus)
 import qualified Data.List                  as L
 import qualified Data.ByteString.Char8      as B
+
+handleError resp s chan = do
+  let code = show $ statusCode $ getResponseStatus resp
+  let errmsg = show $ statusMessage $ getResponseStatus resp
+  sendMsg s chan $ B.pack $ "Error parsing response, status was : " ++ code ++ " " ++ errmsg
 
 toot client s msg chan = do
   let tmsg = (B.drop 1 $ B.dropWhile (/= ' ') msg)
   res <- postStatus (B.unpack tmsg) client
   case res of
-    Left err -> sendMsg s chan $ B.pack $ show err
+    Left (JSONParseException _ resp _) -> handleError resp s chan
     Right _  -> sendMsg s chan "Tooted !"
 
 reply client s msg chan = do
@@ -20,7 +27,7 @@ reply client s msg chan = do
     [(id', repl)] -> do
       res <- postReplyStatus repl id' client
       case res of
-        Left err -> sendMsg s chan $ B.pack $ show err
+        Left (JSONParseException _ resp _) -> handleError resp s chan
         Right _  -> sendMsg s chan "Reply tooted !"
     _ -> sendMsg s chan "Usage : !replytoot <id> <text>"
 
@@ -30,7 +37,7 @@ boost client s msg chan = do
     [(id', "")] -> do
       res <- postReblog id' client
       case res of
-        Left err -> sendMsg s chan $ B.pack $ show err
+        Left (JSONParseException _ resp _) -> handleError resp s chan
         Right _  -> sendMsg s chan "Boosted !"
     _ -> sendMsg s chan "Usage : !boost <id>"
 
