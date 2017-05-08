@@ -31,25 +31,15 @@ reply client s msg chan = do
         Right _  -> sendMsg s chan "Reply tooted !"
     _ -> sendMsg s chan "Usage : |replytoot <id> <text>"
 
-boost client s msg chan = do
+fob f client s msg chan = do
   let id = (B.drop 1 $ B.dropWhile (/= ' ') msg)
   case reads (B.unpack id) :: [(Int,String)] of
     [(id', "")] -> do
-      res <- postReblog id' client
+      res <- f id' client
       case res of
         Left (JSONParseException _ resp _) -> handleError resp s chan
         Right _  -> sendMsg s chan "Boosted !"
     _ -> sendMsg s chan "Usage : |boost <id>"
-
-favorite client s msg chan = do
-  let id = (B.drop 1 $ B.dropWhile (/= ' ') msg)
-  case reads (B.unpack id) :: [(Int,String)] of
-    [(id', "")] -> do
-      res <- postFavorite id' client
-      case res of
-        Left (JSONParseException _ resp _) -> handleError resp s chan
-        Right _  -> sendMsg s chan "Favorited !"
-    _ -> sendMsg s chan "Usage : |favorite <id>"
 
 cmdIfAdmin admins nick s chan client msg f =
   if L.elem nick admins
@@ -62,8 +52,8 @@ cmdIfAdmin admins nick s chan client msg f =
 onMessage client admins s m
   | B.isPrefixOf "|toot" msg = cmdIfAdmin admins nick s chan client msg toot
   | B.isPrefixOf "|replytoot" msg = cmdIfAdmin admins nick s chan client msg reply
-  | B.isPrefixOf "|boost" msg = cmdIfAdmin admins nick s chan client msg boost
-  | B.isPrefixOf "|favorite" msg = cmdIfAdmin admins nick s chan client msg favorite
+  | B.isPrefixOf "|boost" msg = cmdIfAdmin admins nick s chan client msg (fob postReblog)
+  | B.isPrefixOf "|favorite" msg = cmdIfAdmin admins nick s chan client msg (fob postFavorite)
   | otherwise = return ()
   where chan = fromJust $ mChan m
         msg = mMsg m
