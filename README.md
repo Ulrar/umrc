@@ -7,6 +7,7 @@ Available commands are :
 |toot <text>
 |replytoot <id> <text>
 |boost <id>
+|favorite <id>
 ```
 
 Thanks to @syucream for the Hastodon library, I'm using an (included) slightly
