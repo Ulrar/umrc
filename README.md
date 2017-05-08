@@ -4,9 +4,9 @@ It will display on the configured channel incomming notifications (follows, ment
 Available commands are :
 
 ```
-!toot <text>
-!replytoot <id> <text>
-!boost <id>
+|toot <text>
+|replytoot <id> <text>
+|boost <id>
 ```
 
 Thanks to @syucream for the Hastodon library, I'm using an (included) slightly
