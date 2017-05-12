@@ -5,7 +5,7 @@ import Web.Hastodon
 import Data.Maybe                           (fromJust)
 import Network.HTTP.Types.Status            (statusCode, statusMessage)
 import Network.SimpleIRC                    (sendMsg, mChan, mNick, mMsg)
-import Network.HTTP.Simple                  (JSONException(JSONParseException), getResponseStatus)
+import Network.HTTP.Simple                  (JSONException(JSONParseException, JSONConversionException), getResponseStatus)
 import qualified Data.List                  as L
 import qualified Data.ByteString.Char8      as B
 
@@ -42,6 +42,7 @@ mtxt f cmd client s msg chan = do
   res <- f (B.unpack tmsg) client
   case res of
     Left (JSONParseException _ resp _) -> handleError resp s chan
+    Left (JSONConversionException _ resp _) -> handleError resp s chan
     Right _ -> sendMsg s chan $ B.pack $ cmd ++ "ed !"
 
 cmdIfAdmin admins nick s chan client msg f =
