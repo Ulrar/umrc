@@ -46,7 +46,14 @@ follow client s msg chan = do
   res <- postStatus (B.unpack tmsg) client
   case res of
     Left (JSONParseException _ resp _) -> handleError resp s chan
-    Right acc -> sendMsg s chan $ B.pack "Following !"
+    Right _ -> sendMsg s chan $ B.pack "Following !"
+
+unfollow client s msg chan = do
+  let tmsg = (B.drop 1 $ B.dropWhile (/= ' ') msg)
+  res <- postStatus (B.unpack tmsg) client
+  case res of
+    Left (JSONParseException _ resp _) -> handleError resp s chan
+    Right _ -> sendMsg s chan $ B.pack "Unfollowing !"
 
 cmdIfAdmin admins nick s chan client msg f =
   if L.elem nick admins
@@ -63,6 +70,7 @@ onMessage client admins s m
   | B.isPrefixOf "|favorite" msg = cmdIfAdmin admins nick s chan client msg (fob postFavorite "favorite")
   | B.isPrefixOf "|unfavorite" msg = cmdIfAdmin admins nick s chan client msg (fob postUnfavorite "unfavorite")
   | B.isPrefixOf "|follow" msg = cmdIfAdmin admins nick s chan client msg follow
+  | B.isPrefixOf "|unfollow" msg = cmdIfAdmin admins nick s chan client msg unfollow
   | otherwise = return ()
   where chan = fromJust $ mChan m
         msg = mMsg m
