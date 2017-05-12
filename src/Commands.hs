@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Commands (onMessage) where
 
+import Web.Hastodon
 import Data.Maybe                           (fromJust)
 import Network.HTTP.Types.Status            (statusCode, statusMessage)
 import Network.SimpleIRC                    (sendMsg, mChan, mNick, mMsg)
 import Network.HTTP.Simple                  (JSONException(JSONParseException), getResponseStatus)
-import Web.Hastodon                         (postStatus, postReplyStatus, postReblog, postFavorite, postUnfavorite)
 import qualified Data.List                  as L
 import qualified Data.ByteString.Char8      as B
 
@@ -41,6 +41,13 @@ fob f cmd client s msg chan = do
         Right _  -> sendMsg s chan $ B.pack $ cmd ++ "ed !"
     _ -> sendMsg s chan $ B.pack $ "Usage : |" ++ cmd ++ " <id>"
 
+follow client s msg chan = do
+  let tmsg = (B.drop 1 $ B.dropWhile (/= ' ') msg)
+  res <- postStatus (B.unpack tmsg) client
+  case res of
+    Left (JSONParseException _ resp _) -> handleError resp s chan
+    Right acc -> sendMsg s chan $ B.pack "Following !"
+
 cmdIfAdmin admins nick s chan client msg f =
   if L.elem nick admins
   then
@@ -55,6 +62,7 @@ onMessage client admins s m
   | B.isPrefixOf "|boost" msg = cmdIfAdmin admins nick s chan client msg (fob postReblog "boost")
   | B.isPrefixOf "|favorite" msg = cmdIfAdmin admins nick s chan client msg (fob postFavorite "favorite")
   | B.isPrefixOf "|unfavorite" msg = cmdIfAdmin admins nick s chan client msg (fob postUnfavorite "unfavorite")
+  | B.isPrefixOf "|follow" msg = cmdIfAdmin admins nick s chan client msg follow
   | otherwise = return ()
   where chan = fromJust $ mChan m
         msg = mMsg m
