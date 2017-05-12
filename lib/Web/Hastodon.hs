@@ -438,14 +438,14 @@ getSearchedAccounts query client = do
   res <- getHastodonResponseJSON (pSearchAccounts ++ "?q=" ++ query) client
   return (getResponseBody res :: Either JSONException [Account])
 
-postFollow :: Int -> HastodonClient -> IO (Either JSONException Relationship)
+postFollow :: String -> HastodonClient -> IO (Either JSONException Relationship)
 postFollow id client = do
-  res <- postAndGetHastodonResponseJSON (replace ":id" (show id) pFollow) [] client
+  res <- postAndGetHastodonResponseJSON (replace ":id" id pFollow) [] client
   return (getResponseBody res :: Either JSONException Relationship)
 
-postUnfollow :: Int -> HastodonClient -> IO (Either JSONException Relationship)
+postUnfollow :: String -> HastodonClient -> IO (Either JSONException Relationship)
 postUnfollow id client = do
-  res <- postAndGetHastodonResponseJSON (replace ":id" (show id) pUnfollow) [] client
+  res <- postAndGetHastodonResponseJSON (replace ":id" id pUnfollow) [] client
   return (getResponseBody res :: Either JSONException Relationship)
 
 postBlock :: Int -> HastodonClient -> IO (Either JSONException Relationship)
