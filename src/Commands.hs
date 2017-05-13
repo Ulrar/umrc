@@ -22,6 +22,7 @@ reply client s msg chan = do
       res <- postReplyStatus repl id' client
       case res of
         Left (JSONParseException _ resp _) -> handleError resp s chan
+        Left (JSONConversionException _ resp _) -> handleError resp s chan
         Right _  -> sendMsg s chan "Reply tooted !"
     _ -> sendMsg s chan "Usage : |replytoot <id> <text>"
 
@@ -33,6 +34,7 @@ mid f cmd client s msg chan = do
       res <- f id' client
       case res of
         Left (JSONParseException _ resp _) -> handleError resp s chan
+        Left (JSONConversionException _ resp _) -> handleError resp s chan
         Right _  -> sendMsg s chan $ B.pack $ cmd ++ "ed !"
     _ -> sendMsg s chan $ B.pack $ "Usage : |" ++ cmd ++ " <id>"
 
