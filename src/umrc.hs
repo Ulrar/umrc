@@ -22,12 +22,16 @@ import qualified Data.List                  as L
 import qualified Data.Text                  as T
 import qualified Data.ByteString.Char8      as B
 
+handleHttpExcept x =
+  let _ = (x :: HttpException) in
+  putStrLn "Error when trying to connect to mastodon"
+
 -- Callback used to start the timer calling the getNotifs function
 -- after connecting to the IRC server
 onNumeric client chan s m
   | mCode m == "001" = do
       timer <- newTimer
-      repeatedStart timer (catch (getNotifs client chan s) (\x -> let _ = (x :: HttpException) in putStrLn "Error when trying to connect to mastodon")) $ sDelay 60
+      repeatedStart timer (catch (getNotifs client chan s) handleHttpExcept) $ sDelay 60
       return ()
   | otherwise = return ()
 
@@ -47,7 +51,7 @@ main = do
     let serv = T.unpack $ forceEither $ lookupValue "DEFAULT" "server" config
     let nick = T.unpack $ forceEither $ lookupValue "DEFAULT" "nick" config
     let admins = L.map (B.pack . T.unpack . T.strip) $ T.splitOn "," $ forceEither $ lookupValue "DEFAULT" "admins" config
-    let events = [(Privmsg (onMessage client admins))
+    let events = [(Privmsg (\x y -> catch (onMessage client admins x y) handleHttpExcept))
                  ,(Numeric (onNumeric client chan'))]
     let freenode = (mkDefaultConfig serv nick)
                    { cChannels = [chan]
