@@ -32,7 +32,7 @@ reply client s msg chan = do
         Right _  -> sendMsg s chan "Reply tooted !"
     _ -> sendMsg s chan "Usage : |replytoot <id> <text>"
 
--- Helper to call function taking an numeric ID
+-- Helper to call a function taking a numeric ID
 mid f cmd client s msg chan = do
   let id = (B.drop 1 $ B.dropWhile (/= ' ') msg)
   case reads (B.unpack id) :: [(Int,String)] of
@@ -67,8 +67,8 @@ onMessage client admins s m
   | B.isPrefixOf "|boost" msg = cmdIfAdmin admins nick s chan client msg (mid postReblog "boost")
   | B.isPrefixOf "|favorite" msg = cmdIfAdmin admins nick s chan client msg (mid postFavorite "favorite")
   | B.isPrefixOf "|unfavorite" msg = cmdIfAdmin admins nick s chan client msg (mid postUnfavorite "unfavorite")
-  | B.isPrefixOf "|follow" msg = cmdIfAdmin admins nick s chan client msg (mtxt postFollow "follow")
-  | B.isPrefixOf "|unfollow" msg = cmdIfAdmin admins nick s chan client msg (mtxt postUnfollow "unfollow")
+  | B.isPrefixOf "|follow" msg = cmdIfAdmin admins nick s chan client msg (mtxt postFollow "follow") -- Doesn't really work, actually takes an Int
+  | B.isPrefixOf "|unfollow" msg = cmdIfAdmin admins nick s chan client msg (mtxt postUnfollow "unfollow") -- Doesn't really work, actually takes an Int
   | otherwise = return ()
   where chan = fromJust $ mChan m
         msg = mMsg m
