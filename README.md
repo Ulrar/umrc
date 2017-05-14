@@ -6,11 +6,18 @@ Available commands are :
 ```
 |toot <text>
 |replytoot <id> <text>
+|delete <id>
 |boost <id>
 |favorite <id>
 |unfavorite <id>
 |follow <text>
 |unfollow <text>
+```
+
+You can also set the toot visibility like that, if you want :
+```
+|toot -private <text>
+|replytoot -direct <text>
 ```
 
 Thanks to @syucream for the Hastodon library, I'm using an (included) slightly
