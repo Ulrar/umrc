@@ -8,13 +8,15 @@
 module Commands (onMessage) where
 
 import Web.Hastodon
+import Data.ByteString.Search               (replace)
+import Data.ByteString.Lazy                 (toStrict)
 import Data.Maybe                           (fromJust)
 import Network.HTTP.Types.Status            (statusCode, statusMessage)
 import Network.SimpleIRC                    (sendMsg, mChan, mNick, mMsg)
 import Network.HTTP.Simple                  (JSONException(JSONParseException, JSONConversionException), getResponseStatus)
 import qualified Data.List                  as L
 import qualified Data.ByteString.Char8      as B
-import qualified Data.Text                            as T
+import qualified Data.Text                  as T
 
 handleError resp s chan = do
   let code = show $ statusCode $ getResponseStatus resp
@@ -48,7 +50,7 @@ mid f cmd client s msg chan = do
 
 -- Helper to call a function taking text
 mtxt f cmd client s msg chan = do
-  let tmsg = B.pack $ T.unpack $ T.replace "\\n" "\n" (T.pack $ B.unpack (B.drop 1 $ B.dropWhile (/= ' ') msg))
+  let tmsg = toStrict $ replace (B.pack "\\n") (B.pack "\n") $ B.drop 1 $ B.dropWhile (/= ' ') msg
   res <- f (B.unpack tmsg) client
   case res of
     Left (JSONParseException _ resp _) -> handleError resp s chan
