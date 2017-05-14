@@ -71,7 +71,19 @@ followUnfollow f cmd client s msg chan = do
         Left (JSONConversionException _ resp _) -> handleError resp s chan
         Right _ -> sendMsg s chan $ B.pack $ cmd ++ "ed !"
     Right (x:t) -> sendMsg s chan $ B.pack "Error : Search returned multiple accounts"
- 
+
+delete client s msg chan = do
+  let id = (B.drop 1 $ B.dropWhile (/= ' ') msg)
+  case reads (B.unpack id) :: [(Int,String)] of
+    [(id', "")] -> do
+      res <- deleteStatus id' client
+      if res
+        then
+          sendMsg s chan "Error when deleting toot"
+        else
+          sendMsg s chan "Deleted !"
+    _ -> sendMsg s chan "Usage : |delete <id>"
+
 cmdIfAdmin admins nick s chan client msg f =
   if L.elem nick admins
   then
@@ -83,6 +95,7 @@ cmdIfAdmin admins nick s chan client msg f =
 onMessage client admins s m
   | B.isPrefixOf "|toot" msg = cmdIfAdmin admins nick s chan client msg (mtxt postStatus "toot")
   | B.isPrefixOf "|replytoot" msg = cmdIfAdmin admins nick s chan client msg reply
+  | B.isPrefixOf "|delete" msg = cmdIfAdmin admins nick s chan client msg delete
   | B.isPrefixOf "|boost" msg = cmdIfAdmin admins nick s chan client msg (mid postReblog "boost")
   | B.isPrefixOf "|favorite" msg = cmdIfAdmin admins nick s chan client msg (mid postFavorite "favorite")
   | B.isPrefixOf "|unfavorite" msg = cmdIfAdmin admins nick s chan client msg (mid postUnfavorite "unfavorite")

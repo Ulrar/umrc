@@ -37,6 +37,7 @@ module Web.Hastodon
   , getRebloggedBy
   , getFavoritedBy
   , postStatus
+  , deleteStatus
   , postReplyStatus
   , postReblog
   , postUnreblog
@@ -55,6 +56,7 @@ import qualified Data.Text as T
 import Data.String.Utils
 import Network.HTTP.Simple
 import Network.HTTP.Types.Header
+import Network.HTTP.Conduit (Request(method))
 
 --
 -- Mastodon API endpoints
@@ -91,6 +93,7 @@ pCard              = "/api/v1/statuses/:id/card"
 pRebloggedBy       = "/api/v1/statuses/:id/reblogged_by"
 pFavoritedBy       = "/api/v1/statuses/:id/favourited_by"
 pStatuses          = "/api/v1/statuses"
+dStatus            = "/api/v1/statuses/:id"
 pDeleteStatus      = "/api/v1/statuses/:id"
 pHomeTimeline      = "/api/v1/timelines/home"
 pPublicTimeline    = "/api/v1/timelines/public"
@@ -386,6 +389,12 @@ postAndGetHastodonResponseJSON path body client = do
   let req = setRequestBodyURLEncoded body $ initReq
   httpJSONEither req
 
+deleteHastodonResult path body client = do
+  initReq <- mkHastodonRequest path client
+  let req = setRequestBodyURLEncoded body $ initReq {method = Char8.pack "DELETE"}
+  res <- httpNoBody req
+  return $ (getResponseStatusCode res) == 200
+
 -- 
 -- exported functions
 -- 
@@ -560,6 +569,10 @@ postStatus status client = do
   res <- postAndGetHastodonResponseJSON pStatuses [(Char8.pack "status", Char8.pack status)] client
   return (getResponseBody res :: Either JSONException Status)
 
+deleteStatus :: Int -> HastodonClient -> IO Bool
+deleteStatus id client = do
+  deleteHastodonResult (replace ":id" (show id) dStatus) [] client
+  
 postReplyStatus :: String -> Int -> HastodonClient -> IO (Either JSONException Status)
 postReplyStatus status id client = do
   res <- postAndGetHastodonResponseJSON pStatuses [(Char8.pack "status", Char8.pack status), (Char8.pack "in_reply_to_id", Char8.pack $ show id)] client
