@@ -14,8 +14,13 @@ import Control.Monad                        (mapM_, when)
 import Data.Maybe                           (isJust, fromJust)
 import Text.HTML.TagSoup                    (parseTags, innerText)
 import qualified Data.ByteString.Char8      as B
+import qualified Data.List                  as L
 
-buildNotifPrefix dispName nick action = dispName ++ " (" ++ nick ++ ") " ++ action
+buildNotifPrefix dispName nick action = if L.length dispName > 0
+  then
+    dispName ++ " (" ++ nick ++ ") : " ++ action
+  else
+    nick ++ " : " ++ action
 
 dispStatus status action dn nick s chan = do
   let t = parseTags $ statusContent status
