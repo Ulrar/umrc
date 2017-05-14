@@ -393,7 +393,7 @@ postAndGetHastodonResponseJSON path body client = do
 
 deleteHastodonResult path body client = do
   initReq <- mkHastodonRequest path client
-  let req = setRequestBodyURLEncoded body $ initReq {method = Char8.pack "DELETE"}
+  let req = initReq {method = Char8.pack "DELETE"}
   res <- httpNoBody req
   return $ (getResponseStatusCode res) == 200
 
