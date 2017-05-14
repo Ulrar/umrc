@@ -27,8 +27,8 @@ dispStatus status action dn nick s chan = do
     (x:[]) -> sendMsg s chan $ B.pack $ (buildNotifPrefix dn nick action) ++ txt ++ " (id : " ++ id ++ ")"
     (x:t)  -> do
       sendMsg s chan $ B.pack $ (buildNotifPrefix dn nick action) ++ x
-      mapM_ (\y -> sendMsg s chan $ B.pack $ (buildNotifPrefix dn nick action) ++ y) t
-      sendMsg s chan $ B.pack $ (buildNotifPrefix dn nick action) ++ "(id : " ++ id ++ ")"
+      mapM_ (\y -> sendMsg s chan $ B.pack y) t
+      sendMsg s chan $ B.pack $ "(id : " ++ id ++ ")"
 
 -- Connect to the API to get new notifs, print them on IRC then clear them
 getNotifs client chan s = do
