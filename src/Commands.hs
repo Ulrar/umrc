@@ -31,7 +31,7 @@ reply client s msg chan = do
       case res of
         Left (JSONParseException _ resp _) -> handleError resp s chan
         Left (JSONConversionException _ resp _) -> handleError resp s chan
-        Right _  -> sendMsg s chan "Reply tooted !"
+        Right st  -> sendMsg s chan $ B.pack $ "Reply tooted ! (id : " ++ (show $ statusId st) ++ ")"
     _ -> sendMsg s chan "Usage : |replytoot <id> <text>"
 
 -- Helper to call a function taking a numeric ID
@@ -53,7 +53,7 @@ mtxt f cmd client s msg chan = do
   case res of
     Left (JSONParseException _ resp _) -> handleError resp s chan
     Left (JSONConversionException _ resp _) -> handleError resp s chan
-    Right _ -> sendMsg s chan $ B.pack $ cmd ++ "ed !"
+    Right st -> sendMsg s chan $ B.pack $ cmd ++ ("ed ! (id : " ++ (show $ statusId st) ++ ")")
 
 followUnfollow f cmd client s msg chan = do
   let tmsg = (B.drop 1 $ B.dropWhile (/= ' ') msg)
