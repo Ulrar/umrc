@@ -46,7 +46,7 @@ mid f cmd client s msg chan = do
 
 -- Helper to call a function taking text
 mtxt f cmd client s msg chan = do
-  let tmsg = (B.drop 1 $ B.dropWhile (/= ' ') msg)
+  let tmsg = B.pack (read $ B.unpack (B.drop 1 $ B.dropWhile (/= ' ') msg) :: String)
   res <- f (B.unpack tmsg) client
   case res of
     Left (JSONParseException _ resp _) -> handleError resp s chan
