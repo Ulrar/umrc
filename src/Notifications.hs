@@ -21,14 +21,13 @@ dispStatus status action dn nick s chan = do
   let t = parseTags $ statusContent status
   let txt = innerText t
   let id = show $ statusId status
-  let w = wrapLine 400 txt
+  let w = wrapLine 400 $ (buildNotifPrefix dn nick action) ++ txt ++ " (id : " ++ id ++ ")"
   case w of
     [] -> return ()
-    (x:[]) -> sendMsg s chan $ B.pack $ (buildNotifPrefix dn nick action) ++ txt ++ " (id : " ++ id ++ ")"
+    (x:[]) -> sendMsg s chan $ B.pack x
     (x:t)  -> do
-      sendMsg s chan $ B.pack $ (buildNotifPrefix dn nick action) ++ x
+      sendMsg s chan $ B.pack $ x
       mapM_ (\y -> sendMsg s chan $ B.pack y) t
-      sendMsg s chan $ B.pack $ "(id : " ++ id ++ ")"
 
 -- Connect to the API to get new notifs, print them on IRC then clear them
 getNotifs client chan s = do
