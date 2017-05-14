@@ -29,7 +29,12 @@ reply client s msg chan = do
   case reads (B.unpack id) :: [(Int,String)] of
     [(id', repl)] -> do
       let repl' = T.unpack $ T.replace "\\n" "\n" $ T.pack repl
-      res <- postReplyStatus repl' id' client
+      res <- if head repl' == '-'
+        then
+          let vis = T.unpack $ T.drop 1 $ T.takeWhile (/= ' ') $ T.pack repl' in
+          postReplyStatusVis (T.unpack $ T.drop 1 $ T.dropWhile (/= ' ') $ T.pack repl') vis id' client
+        else
+          postReplyStatus repl' id' client
       case res of
         Left (JSONParseException _ resp _) -> handleError resp s chan
         Left (JSONConversionException _ resp _) -> handleError resp s chan
@@ -48,14 +53,18 @@ mid f cmd client s msg chan = do
         Right _  -> sendMsg s chan $ B.pack $ cmd ++ "ed !"
     _ -> sendMsg s chan $ B.pack $ "Usage : |" ++ cmd ++ " <id>"
 
--- Helper to call a function taking text
-mtxt f cmd client s msg chan = do
+toot client s msg chan = do
   let tmsg = toStrict $ replace (B.pack "\\n") (B.pack "\n") $ B.drop 1 $ B.dropWhile (/= ' ') msg
-  res <- f (B.unpack tmsg) client
+  res <- if B.head tmsg == '-'
+    then
+      let vis = B.unpack $ B.drop 1 $ B.takeWhile (/= ' ') tmsg in
+      postStatusVis vis (B.unpack $ B.drop 1 $ B.dropWhile (/= ' ') tmsg) client
+    else
+      postStatus (B.unpack tmsg) client
   case res of
     Left (JSONParseException _ resp _) -> handleError resp s chan
     Left (JSONConversionException _ resp _) -> handleError resp s chan
-    Right st -> sendMsg s chan $ B.pack $ cmd ++ ("ed ! (id : " ++ (show $ statusId st) ++ ")")
+    Right st -> sendMsg s chan $ B.pack $ "Tooted ! (id : " ++ (show $ statusId st) ++ ")"
 
 followUnfollow f cmd client s msg chan = do
   let tmsg = (B.drop 1 $ B.dropWhile (/= ' ') msg)
@@ -93,7 +102,7 @@ cmdIfAdmin admins nick s chan client msg f =
 
 -- Callback when someone talks on IRC
 onMessage client admins s m
-  | B.isPrefixOf "|toot" msg = cmdIfAdmin admins nick s chan client msg (mtxt postStatus "toot")
+  | B.isPrefixOf "|toot" msg = cmdIfAdmin admins nick s chan client msg toot
   | B.isPrefixOf "|replytoot" msg = cmdIfAdmin admins nick s chan client msg reply
   | B.isPrefixOf "|delete" msg = cmdIfAdmin admins nick s chan client msg delete
   | B.isPrefixOf "|boost" msg = cmdIfAdmin admins nick s chan client msg (mid postReblog "boost")

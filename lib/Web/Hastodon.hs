@@ -38,7 +38,9 @@ module Web.Hastodon
   , getFavoritedBy
   , postStatus
   , deleteStatus
+  , postStatusVis
   , postReplyStatus
+  , postReplyStatusVis
   , postReblog
   , postUnreblog
   , postFavorite
@@ -572,10 +574,23 @@ postStatus status client = do
 deleteStatus :: Int -> HastodonClient -> IO Bool
 deleteStatus id client = do
   deleteHastodonResult (replace ":id" (show id) dStatus) [] client
+
+postStatusVis :: String -> String -> HastodonClient -> IO (Either JSONException Status)
+postStatusVis visibility status client = do
+  res <- postAndGetHastodonResponseJSON pStatuses [(Char8.pack "status", Char8.pack status), (Char8.pack "visibility", Char8.pack visibility)] client
+  return (getResponseBody res :: Either JSONException Status)
   
 postReplyStatus :: String -> Int -> HastodonClient -> IO (Either JSONException Status)
 postReplyStatus status id client = do
   res <- postAndGetHastodonResponseJSON pStatuses [(Char8.pack "status", Char8.pack status), (Char8.pack "in_reply_to_id", Char8.pack $ show id)] client
+  return (getResponseBody res :: Either JSONException Status)
+
+postReplyStatusVis :: String -> String -> Int -> HastodonClient -> IO (Either JSONException Status)
+postReplyStatusVis status visibility id client = do
+  res <- postAndGetHastodonResponseJSON pStatuses [(Char8.pack "status", Char8.pack status),
+                                                   (Char8.pack "in_reply_to_id", Char8.pack $ show id),
+                                                   (Char8.pack "visibility", Char8.pack visibility)]
+                                                  client
   return (getResponseBody res :: Either JSONException Status)
 
 postReblog :: Int -> HastodonClient -> IO (Either JSONException Status)
