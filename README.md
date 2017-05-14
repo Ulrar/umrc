@@ -9,6 +9,8 @@ Available commands are :
 |boost <id>
 |favorite <id>
 |unfavorite <id>
+|follow <text>
+|unfollow <text>
 ```
 
 Thanks to @syucream for the Hastodon library, I'm using an (included) slightly

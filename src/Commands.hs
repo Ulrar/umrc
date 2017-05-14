@@ -53,6 +53,21 @@ mtxt f cmd client s msg chan = do
     Left (JSONConversionException _ resp _) -> handleError resp s chan
     Right _ -> sendMsg s chan $ B.pack $ cmd ++ "ed !"
 
+followUnfollow f cmd client s msg chan = do
+  let tmsg = (B.drop 1 $ B.dropWhile (/= ' ') msg)
+  res <- getSearchedAccounts (B.unpack tmsg) client
+  case res of
+    Left (JSONParseException _ resp _) -> handleError resp s chan
+    Left (JSONConversionException _ resp _) -> handleError resp s chan
+    Right [] -> sendMsg s chan $ B.pack "Error : No such account"
+    Right (x:[]) -> do
+      res' <- f (accountId x) client
+      case res' of
+        Left (JSONParseException _ resp _) -> handleError resp s chan
+        Left (JSONConversionException _ resp _) -> handleError resp s chan
+        Right _ -> sendMsg s chan $ B.pack $ cmd ++ "ed !"
+    Right (x:t) -> sendMsg s chan $ B.pack "Error : Search returned multiple accounts"
+ 
 cmdIfAdmin admins nick s chan client msg f =
   if L.elem nick admins
   then
@@ -67,8 +82,8 @@ onMessage client admins s m
   | B.isPrefixOf "|boost" msg = cmdIfAdmin admins nick s chan client msg (mid postReblog "boost")
   | B.isPrefixOf "|favorite" msg = cmdIfAdmin admins nick s chan client msg (mid postFavorite "favorite")
   | B.isPrefixOf "|unfavorite" msg = cmdIfAdmin admins nick s chan client msg (mid postUnfavorite "unfavorite")
-  | B.isPrefixOf "|follow" msg = cmdIfAdmin admins nick s chan client msg (mtxt postFollow "follow") -- Doesn't really work, actually takes an Int
-  | B.isPrefixOf "|unfollow" msg = cmdIfAdmin admins nick s chan client msg (mtxt postUnfollow "unfollow") -- Doesn't really work, actually takes an Int
+  | B.isPrefixOf "|follow" msg = cmdIfAdmin admins nick s chan client msg (followUnfollow postFollow "follow")
+  | B.isPrefixOf "|unfollow" msg = cmdIfAdmin admins nick s chan client msg (followUnfollow postUnfollow "unfollow")
   | otherwise = return ()
   where chan = fromJust $ mChan m
         msg = mMsg m
