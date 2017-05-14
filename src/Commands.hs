@@ -26,7 +26,8 @@ reply client s msg chan = do
   let id = B.drop 1 $ B.dropWhile (/= ' ') msg
   case reads (B.unpack id) :: [(Int,String)] of
     [(id', repl)] -> do
-      res <- postReplyStatus repl id' client
+      let repl' = T.unpack $ T.replace "\\n" "\n" $ T.pack repl
+      res <- postReplyStatus repl' id' client
       case res of
         Left (JSONParseException _ resp _) -> handleError resp s chan
         Left (JSONConversionException _ resp _) -> handleError resp s chan
