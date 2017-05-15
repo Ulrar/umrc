@@ -26,6 +26,9 @@ handleHttpExcept x =
   let _ = (x :: HttpException) in
   putStrLn "Error when trying to connect to mastodon"
 
+-- Helper to parse config
+getConfigVal config category name = forceEither $ lookupValue category name config
+
 -- Callback used to start the timer calling the getNotifs function
 -- after connecting to the IRC server
 onNumeric client chan s m
@@ -41,18 +44,17 @@ main = do
   then do
     val <- readIniFile $ L.head args
     let config = forceEither val
-    let clientId = forceEither $ lookupValue "DEFAULT" "clientId" config
-    let clientSecret = forceEither $ lookupValue "DEFAULT" "clientSecret" config
-    let token = T.unpack $ forceEither $ lookupValue "DEFAULT" "token" config
-    let domain = T.unpack $ forceEither $ lookupValue "DEFAULT" "domain" config
+    let getConfigM = T.unpack . getConfigVal config "MASTODON"
+    let getConfigI = T.unpack . getConfigVal config "IRC"
+    let token  = getConfigM "token"
+    let domain = getConfigM "domain"
+    let chan   = getConfigI "chan"
+    let serv   = getConfigI "server"
+    let nick   = getConfigI "nick"
+    let admins = L.map (B.pack . T.unpack . T.strip) $ T.splitOn "," $ getConfigVal config "IRC" "admins"
     let client = mkHastodonClientFromToken domain token
-    let chan = T.unpack $ forceEither $ lookupValue "DEFAULT" "chan" config
-    let chan' = B.pack chan
-    let serv = T.unpack $ forceEither $ lookupValue "DEFAULT" "server" config
-    let nick = T.unpack $ forceEither $ lookupValue "DEFAULT" "nick" config
-    let admins = L.map (B.pack . T.unpack . T.strip) $ T.splitOn "," $ forceEither $ lookupValue "DEFAULT" "admins" config
     let events = [(Privmsg (\x y -> catch (onMessage client admins x y) handleHttpExcept))
-                 ,(Numeric (onNumeric client chan'))]
+                 ,(Numeric (onNumeric client $ B.pack chan))]
     let freenode = (mkDefaultConfig serv nick)
                    { cChannels = [chan]
                    , cEvents   = events
