@@ -2,7 +2,7 @@
 -- see http://haskell.org/cabal/users-guide/
 
 name:                umrc
-version:             0.1
+version:             0.2
 synopsis:            IRC bot to control a mastodon account
 -- description:         
 homepage:            https://github.com/ulrar/umrc
@@ -28,6 +28,21 @@ executable umrc
   hs-source-dirs:      src/
   -- other-modules:       
   -- other-extensions:    
-  build-depends:       umrc, base >=4.6 && <4.9, bytestring >=0.10 && <0.11, text >=1.2 && <1.3, tagsoup, timers, suspend, simpleirc, ini, MissingH, http-conduit, http-types, stringsearch, twitter-conduit
+  build-depends:       umrc,
+                       base >=4.6 && <4.9,
+                       bytestring >=0.10 && <0.11,
+                       text >=1.2 && <1.3,
+                       tagsoup,
+                       timers,
+                       suspend,
+                       simpleirc,
+                       ini,
+                       MissingH,
+                       http-conduit,
+                       http-types,
+                       stringsearch,
+                       twitter-conduit,
+                       twitter-types,
+                       lens
   -- hs-source-dirs:      
   default-language:    Haskell2010

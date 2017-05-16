@@ -67,7 +67,8 @@ main = do
     let tappinfo = twitterOAuth {oauthConsumerKey = tkey, oauthConsumerSecret = tsecret}
     let tauth = Credential [ ("oauth_token", ttoken), ("oauth_token_secret", ttoksec)]
     let twinfo = setCredential tappinfo tauth def
-    let events = [(Privmsg (\x y -> catch (onMessage client (menabled == "true") (tenabled == "true") iadmins x y) handleHttpExcept))
+    tmgr <- newManager tlsManagerSettings
+    let events = [(Privmsg (\x y -> catch (onMessage client (menabled == "true") (tenabled == "true") tmgr twinfo iadmins x y) handleHttpExcept))
                  ,(Numeric (onNumeric client (menabled == "true") (tenabled == "true") $ B.pack ichan))]
     let ircServer = (mkDefaultConfig iserv inick)
                    { cChannels = [ichan]

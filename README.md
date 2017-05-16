@@ -1,17 +1,24 @@
 umrc is a bot to allow using a Mastodon account from IRC.
 It will display on the configured channel incomming notifications (follows, mentions ..)
 
-Available commands are :
+Available commands for Mastodon are :
 
 ```
 |toot <text>
-|replytoot <id> <text>
+|reply <id> <text>
 |delete <id>
 |boost <id>
 |favorite <id>
 |unfavorite <id>
 |follow <text>
 |unfollow <text>
+```
+
+Available commands for twitter are :
+```
+!tweet <text>
+!reply <id> <text>
+!delete <id>
 ```
 
 You can also set the toot visibility like that, if you want :
@@ -46,20 +53,37 @@ That should give you the final binary in dist/build/umrc/umrc.
 
 You need to register the app on mastodon and get a client id, secret and a token.
 You can use https://tinysubversions.com/notes/mastodon-bot/ for that, and use those ids
-in the config file :
+in the config file.
+
+As for twitter, you'll need to register an app too because the twitter API is ridiculous.
+You can do that here : https://apps.twitter.com/
+You'll need to create the APP (find some unused name ..) and get the consumer key (appkey),
+consumer secret (appsecret), and then generate an access token and add that to the config too.
 
 ```
-[DEFAULT]
+[IRC]
+server = chat.freenode.net
+nick = umrc
+chan = #umrc
+admins = Ulrar, Someone else
+
+[MASTODON]
+enabled = true
 clientId = ID
 clientSecret = Another ID
 token = The token
 domain = mastodon.tld
 
-server = chat.freenode.net
-nick = umrc
-chan = #umrc
-admins = Ulrar, Someone else
+[TWITTER]
+enabled = true
+appkey = KEY
+appsecret = SECRET
+token = TOKEN
+tokensecret = TOKEN SECRET
 ```
+
+If you don't want to use Mastodon or Twitter, just change enabled to false and it'll become
+inactive, the commands will just reply "X is disabled".
 
 See the included config.ini for an (inactive) example.
 Save that somewhere as config.ini
