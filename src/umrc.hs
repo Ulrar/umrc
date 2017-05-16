@@ -16,8 +16,10 @@ import Network.HTTP.Simple                  (HttpException)
 import Control.Concurrent.Timer             (repeatedStart, newTimer)
 import Control.Concurrent.Suspend.Lifted    (sDelay)
 import Control.Exception                    (catch)
+import Control.Monad                        (when)
 import System.Environment                   (getArgs)
 import Data.Either.Utils                    (forceEither)
+import Web.Twitter.Conduit
 import qualified Data.List                  as L
 import qualified Data.Text                  as T
 import qualified Data.ByteString.Char8      as B
@@ -31,10 +33,12 @@ getConfigVal config category name = forceEither $ lookupValue category name conf
 
 -- Callback used to start the timer calling the getNotifs function
 -- after connecting to the IRC server
-onNumeric client chan s m
+onNumeric client mastodon twitter chan s m
   | mCode m == "001" = do
-      timer <- newTimer
-      repeatedStart timer (catch (getNotifs client chan s) handleHttpExcept) $ sDelay 60
+      when mastodon $ do
+        timerM <- newTimer
+        repeatedStart timerM (catch (getNotifs client chan s) handleHttpExcept) $ sDelay 60
+        return ()
       return ()
   | otherwise = return ()
 
@@ -46,15 +50,25 @@ main = do
     let config = forceEither val
     let getConfigM = T.unpack . getConfigVal config "MASTODON"
     let getConfigI = T.unpack . getConfigVal config "IRC"
-    let mtoken  = getConfigM "token"
-    let mdomain = getConfigM "domain"
-    let ichan   = getConfigI "chan"
-    let iserv   = getConfigI "server"
-    let inick   = getConfigI "nick"
-    let iadmins = L.map (B.pack . T.unpack . T.strip) $ T.splitOn "," $ getConfigVal config "IRC" "admins"
+    let getConfigT = B.pack . T.unpack . getConfigVal config "TWITTER"
+    let mtoken   = getConfigM "token"
+    let mdomain  = getConfigM "domain"
+    let menabled = getConfigM "enabled"
+    let tenabled = getConfigT "enabled"
+    let ttoken   = getConfigT "token"
+    let tkey     = getConfigT "appkey"
+    let tsecret  = getConfigT "appsecret"
+    let ttoksec  = getConfigT "tokensecret"
+    let ichan    = getConfigI "chan"
+    let iserv    = getConfigI "server"
+    let inick    = getConfigI "nick"
+    let iadmins  = L.map (B.pack . T.unpack . T.strip) $ T.splitOn "," $ getConfigVal config "IRC" "admins"
     let client = mkHastodonClientFromToken mdomain mtoken
-    let events = [(Privmsg (\x y -> catch (onMessage client iadmins x y) handleHttpExcept))
-                 ,(Numeric (onNumeric client $ B.pack ichan))]
+    let tappinfo = twitterOAuth {oauthConsumerKey = tkey, oauthConsumerSecret = tsecret}
+    let tauth = Credential [ ("oauth_token", ttoken), ("oauth_token_secret", ttoksec)]
+    let twinfo = setCredential tappinfo tauth def
+    let events = [(Privmsg (\x y -> catch (onMessage client (menabled == "true") (tenabled == "true") iadmins x y) handleHttpExcept))
+                 ,(Numeric (onNumeric client (menabled == "true") (tenabled == "true") $ B.pack ichan))]
     let ircServer = (mkDefaultConfig iserv inick)
                    { cChannels = [ichan]
                    , cEvents   = events
