@@ -25,8 +25,15 @@ modified version of it here. See https://github.com/syucream/hastodon for the or
 
 # Compilation
 
-You need to install ghc and cabal-install first, then
 
+Unfortunatly you'll need cabal >= 1.22, which means you'll need backports on debian jessie.
+See https://backports.debian.org/Instructions/ for instructions on enabling backports.
+Then you'll need to install packages :
+```bash
+apt-get -t jessie-backports install cabal-install ghc
+```
+
+And finally, compile umrc :
 ```bash
 $ cabal update
 $ cabal install --only-dependencies

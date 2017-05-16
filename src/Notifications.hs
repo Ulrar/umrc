@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 -- "THE BEER-WARE LICENSE" (Revision 42):
 -- <lemonnierk@ulrar.net> wrote this file. As long as you retain this notice you

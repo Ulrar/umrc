@@ -21,13 +21,13 @@ library
   hs-source-dirs:      lib
   exposed-modules:     Web.Hastodon
 
-  build-depends:       base >=4.6 && <4.7, bytestring >=0.10 && <0.11, text >=1.2 && <1.3, http-types, http-conduit, MissingH, aeson
+  build-depends:       base >=4.6 && <4.9, bytestring >=0.10 && <0.11, text >=1.2 && <1.3, http-types, http-conduit, MissingH, aeson
 
 executable umrc
   main-is:             umrc.hs
   hs-source-dirs:      src/
   -- other-modules:       
   -- other-extensions:    
-  build-depends:       umrc, base >=4.6 && <4.7, bytestring >=0.10 && <0.11, text >=1.2 && <1.3, tagsoup, timers, suspend, simpleirc, ini, MissingH, http-conduit, http-types, stringsearch
+  build-depends:       umrc, base >=4.6 && <4.9, bytestring >=0.10 && <0.11, text >=1.2 && <1.3, tagsoup, timers, suspend, simpleirc, ini, MissingH, http-conduit, http-types, stringsearch
   -- hs-source-dirs:      
   default-language:    Haskell2010
