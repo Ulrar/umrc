@@ -46,20 +46,20 @@ main = do
     let config = forceEither val
     let getConfigM = T.unpack . getConfigVal config "MASTODON"
     let getConfigI = T.unpack . getConfigVal config "IRC"
-    let token  = getConfigM "token"
-    let domain = getConfigM "domain"
-    let chan   = getConfigI "chan"
-    let serv   = getConfigI "server"
-    let nick   = getConfigI "nick"
-    let admins = L.map (B.pack . T.unpack . T.strip) $ T.splitOn "," $ getConfigVal config "IRC" "admins"
-    let client = mkHastodonClientFromToken domain token
-    let events = [(Privmsg (\x y -> catch (onMessage client admins x y) handleHttpExcept))
-                 ,(Numeric (onNumeric client $ B.pack chan))]
-    let freenode = (mkDefaultConfig serv nick)
-                   { cChannels = [chan]
+    let mtoken  = getConfigM "token"
+    let mdomain = getConfigM "domain"
+    let ichan   = getConfigI "chan"
+    let iserv   = getConfigI "server"
+    let inick   = getConfigI "nick"
+    let iadmins = L.map (B.pack . T.unpack . T.strip) $ T.splitOn "," $ getConfigVal config "IRC" "admins"
+    let client = mkHastodonClientFromToken mdomain mtoken
+    let events = [(Privmsg (\x y -> catch (onMessage client iadmins x y) handleHttpExcept))
+                 ,(Numeric (onNumeric client $ B.pack ichan))]
+    let ircServer = (mkDefaultConfig iserv inick)
+                   { cChannels = [ichan]
                    , cEvents   = events
                    }
-    connect freenode False True
+    connect ircServer False True
     putStrLn "end"
   else
     putStrLn "usage: umrc /path/to/config.ini"
