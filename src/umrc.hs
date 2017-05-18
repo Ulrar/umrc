@@ -43,7 +43,7 @@ onNumeric client mastodon twitter tmgr twinfo chan s m
         return ()
       when twitter $ do
         lastid <- tgetLastId tmgr twinfo
-        lid <- newIORef (lastid - 1)
+        lid <- newIORef lastid
         timerM <- newTimer
         repeatedStart timerM (catch (getTMentions lid tmgr twinfo chan s) (handleTwitterException s chan)) $ sDelay 60
         return ()
