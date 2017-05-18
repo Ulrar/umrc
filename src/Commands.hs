@@ -10,8 +10,6 @@ module Commands (onMessage) where
 import Mastodon
 import Twitter
 import Web.Hastodon
-import Web.Twitter.Conduit.Response
-import Network.HTTP.Types.Status            (Status(..))
 import Control.Exception                    (catch)
 import Data.Maybe                           (fromJust)
 import Network.SimpleIRC                    (sendMsg, mChan, mNick, mMsg)
@@ -37,14 +35,7 @@ cmdIfAdminT twitter admins nick s chan mgr twinfo msg f =
   then
     if L.elem nick admins
     then
-      catch (f mgr twinfo msg s chan)
-        (\x -> do
-          case x of
-            FromJSONError str -> sendMsg s chan $ B.pack $ "Error decoding response : " ++ str
-            TwitterErrorResponse st _ (h:t) -> sendMsg s chan $ B.pack $ "Error " ++ (show $ statusCode st) ++ " : " ++ (T.unpack $ twitterErrorMessage h)
-            TwitterUnknownErrorResponse st _ _ -> sendMsg s chan $ B.pack $ "Unknown error " ++ (show $ statusCode st)
-            TwitterStatusError st _ _ -> sendMsg s chan $ B.pack $ "Status error " ++ (show $ statusCode st)
-        )
+      catch (f mgr twinfo msg s chan) (handleTwitterException s chan)
     else
       sendMsg s chan "Unauthorized"
   else

@@ -15,7 +15,7 @@ import Web.Hastodon                         (mkHastodonClientFromToken)
 import Network.HTTP.Simple                  (HttpException)
 import Control.Concurrent.Timer             (repeatedStart, newTimer)
 import Control.Concurrent.Suspend.Lifted    (sDelay)
-import Twitter                              (tgetLastId)
+import Twitter                              (tgetLastId, handleTwitterException)
 import Data.IORef                           (newIORef)
 import Control.Exception                    (catch)
 import Control.Monad                        (when)
@@ -45,7 +45,7 @@ onNumeric client mastodon twitter tmgr twinfo chan s m
         lastid <- tgetLastId tmgr twinfo
         lid <- newIORef (lastid - 1)
         timerM <- newTimer
-        repeatedStart timerM (getTMentions lid tmgr twinfo chan s) $ sDelay 60
+        repeatedStart timerM (catch (getTMentions lid tmgr twinfo chan s) (handleTwitterException s chan)) $ sDelay 60
         return ()
       return ()
   | otherwise = return ()

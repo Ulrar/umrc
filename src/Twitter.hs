@@ -5,10 +5,12 @@
 -- can do whatever you want with this stuff. If we meet some day, and you think
 -- this stuff is worth it, you can buy me a beer in return
 
-module Twitter (tweet, replytweet, deletetweet, tid, tusrname, tgetLastId) where
+module Twitter (tweet, replytweet, deletetweet, tid, tusrname, tgetLastId, handleTwitterException) where
 
+import Web.Twitter.Conduit.Response
 import Control.Lens
 import Network.SimpleIRC                    (sendMsg)
+import Network.HTTP.Types.Status            (Status(..))
 import qualified Web.Twitter.Conduit        as Twitter
 import qualified Web.Twitter.Types          as Twitter
 import qualified Data.ByteString.Char8      as B
@@ -54,3 +56,11 @@ tgetLastId mgr twinfo = do
   case st of
     []    -> return 0
     (x:t) -> return $ Twitter.statusId x
+
+handleTwitterException s chan x = do
+  case x of
+    FromJSONError str -> sendMsg s chan $ B.pack $ "Error decoding response : " ++ str
+    TwitterErrorResponse st _ (h:t) -> sendMsg s chan $ B.pack $ "Error " ++ (show $ statusCode st) ++ " : " ++ (T.unpack $ twitterErrorMessage h)
+    TwitterUnknownErrorResponse st _ _ -> sendMsg s chan $ B.pack $ "Unknown error " ++ (show $ statusCode st)
+    TwitterStatusError st _ _ -> sendMsg s chan $ B.pack $ "Status error " ++ (show $ statusCode st)
+
