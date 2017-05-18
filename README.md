@@ -19,6 +19,11 @@ Available commands for twitter are :
 !tweet <text>
 !reply <id> <text>
 !delete <id>
+!retweet <id>
+!favorite <id>
+!unfavorite <id>
+!follow <text>
+!unfollow <text>
 ```
 
 You can also set the toot visibility like that, if you want :
