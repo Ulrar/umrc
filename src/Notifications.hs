@@ -28,7 +28,7 @@ import qualified Data.Text                  as T
 
 buildNotifPrefix dispName nick action = if L.length dispName > 0
   then
-    dispName ++ " (" ++ nick ++ ") : " ++ action
+    dispName ++ " (" ++ nick ++ ") " ++ action
   else
     nick ++ " : " ++ action
 
