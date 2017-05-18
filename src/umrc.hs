@@ -15,6 +15,8 @@ import Web.Hastodon                         (mkHastodonClientFromToken)
 import Network.HTTP.Simple                  (HttpException)
 import Control.Concurrent.Timer             (repeatedStart, newTimer)
 import Control.Concurrent.Suspend.Lifted    (sDelay)
+import Twitter                              (tgetLastId)
+import Data.IORef                           (newIORef)
 import Control.Exception                    (catch)
 import Control.Monad                        (when)
 import System.Environment                   (getArgs)
@@ -33,11 +35,17 @@ getConfigVal config category name = forceEither $ lookupValue category name conf
 
 -- Callback used to start the timer calling the getNotifs function
 -- after connecting to the IRC server
-onNumeric client mastodon twitter chan s m
+onNumeric client mastodon twitter tmgr twinfo chan s m
   | mCode m == "001" = do
       when mastodon $ do
         timerM <- newTimer
         repeatedStart timerM (catch (getNotifs client chan s) handleHttpExcept) $ sDelay 60
+        return ()
+      when twitter $ do
+        lastid <- tgetLastId tmgr twinfo
+        lid <- newIORef (lastid - 1)
+        timerM <- newTimer
+        repeatedStart timerM (getTMentions lid tmgr twinfo chan s) $ sDelay 60
         return ()
       return ()
   | otherwise = return ()
@@ -69,7 +77,7 @@ main = do
     let twinfo = setCredential tappinfo tauth def
     tmgr <- newManager tlsManagerSettings
     let events = [(Privmsg (\x y -> catch (onMessage client (menabled == "true") (tenabled == "true") tmgr twinfo iadmins x y) handleHttpExcept))
-                 ,(Numeric (onNumeric client (menabled == "true") (tenabled == "true") $ B.pack ichan))]
+                 ,(Numeric (onNumeric client (menabled == "true") (tenabled == "true") tmgr twinfo $ B.pack ichan))]
     let ircServer = (mkDefaultConfig iserv inick)
                    { cChannels = [ichan]
                    , cEvents   = events

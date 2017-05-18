@@ -5,7 +5,7 @@
 -- can do whatever you want with this stuff. If we meet some day, and you think
 -- this stuff is worth it, you can buy me a beer in return
 
-module Twitter (tweet, replytweet, deletetweet, tid, tusrname) where
+module Twitter (tweet, replytweet, deletetweet, tid, tusrname, tgetLastId) where
 
 import Control.Lens
 import Network.SimpleIRC                    (sendMsg)
@@ -47,3 +47,10 @@ tusrname f cmd mgr twinfo msg s chan = do
   let txt = (B.drop 1 $ B.dropWhile (/= ' ') msg)
   user <- Twitter.call twinfo mgr $ f $ Twitter.ScreenNameParam $ B.unpack txt
   sendMsg s chan $ B.pack $ (T.unpack $ Twitter.userScreenName user) ++ " " ++ cmd ++ "ed !"
+
+tgetLastId :: Twitter.Manager -> Twitter.TWInfo -> IO Integer
+tgetLastId mgr twinfo = do
+  st <- Twitter.call twinfo mgr $ Twitter.mentionsTimeline & Twitter.count ?~ 1
+  case st of
+    []    -> return 0
+    (x:t) -> return $ Twitter.statusId x

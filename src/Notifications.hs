@@ -6,16 +6,25 @@
 -- can do whatever you want with this stuff. If we meet some day, and you think
 -- this stuff is worth it, you can buy me a beer in return
 
-module Notifications (getNotifs) where
+module Notifications (getNotifs, getTMentions) where
 
 import Web.Hastodon
 import WordWrap
+import Control.Lens
 import Network.SimpleIRC                    (sendMsg)
-import Control.Monad                        (mapM_, when)
+import Control.Monad                        (mapM, mapM_, when)
 import Data.Maybe                           (isJust, fromJust)
+import Data.IORef                           (readIORef, writeIORef)
 import Text.HTML.TagSoup                    (parseTags, innerText)
+import qualified Web.Twitter.Conduit        as Twitter
+import qualified Web.Twitter.Types          as Twitter
 import qualified Data.ByteString.Char8      as B
 import qualified Data.List                  as L
+import qualified Data.Text                  as T
+
+--
+-- Mastodon
+--
 
 buildNotifPrefix dispName nick action = if L.length dispName > 0
   then
@@ -65,3 +74,19 @@ getNotifs client chan s = do
       postNotificationsClear client
       return ()
 
+--
+-- Twitter
+--
+
+fuck status = (T.unpack $ Twitter.userScreenName $ Twitter.statusUser status) ++ " tweeted : " ++ (T.unpack $ Twitter.statusText status) ++ " (id : " ++ (show $ Twitter.statusId status) ++ ")"
+
+func s chan status = do
+  sendMsg s chan $ B.pack $ fuck status
+  return $ Twitter.statusId status
+
+getTMentions lastid mgr twinfo chan s = do
+  id <- readIORef lastid
+  statuses <- Twitter.call twinfo mgr $ Twitter.mentionsTimeline & Twitter.sinceId ?~ id
+  ids <- mapM (func s chan) statuses
+  writeIORef lastid $ maximum ids
+  return ()
