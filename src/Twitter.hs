@@ -5,7 +5,7 @@
 -- can do whatever you want with this stuff. If we meet some day, and you think
 -- this stuff is worth it, you can buy me a beer in return
 
-module Twitter (tweet, replytweet, deletetweet, tid) where
+module Twitter (tweet, replytweet, deletetweet, tid, tusrname) where
 
 import Control.Lens
 import Network.SimpleIRC                    (sendMsg)
@@ -42,3 +42,8 @@ tid f fd cmd mgr twinfo msg s chan = do
       st <- Twitter.call twinfo mgr $ f id'
       sendMsg s chan $ B.pack $ cmd ++ "ed ! (id : " ++ (show $ fd st) ++ ")"
     _ -> sendMsg s chan $ B.pack $ "Usage : !" ++ cmd ++ " <id>"
+
+tusrname f cmd mgr twinfo msg s chan = do
+  let txt = (B.drop 1 $ B.dropWhile (/= ' ') msg)
+  user <- Twitter.call twinfo mgr $ f $ Twitter.ScreenNameParam $ B.unpack txt
+  sendMsg s chan $ B.pack $ (T.unpack $ Twitter.userScreenName user) ++ " " ++ cmd ++ "ed !"

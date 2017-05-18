@@ -66,6 +66,8 @@ onMessage client mastodon twitter tmgr twinfo admins s m
   | B.isPrefixOf "!retweet" msg = cmdIfAdminT twitter admins nick s chan tmgr twinfo msg (tid Twitter.retweetId Twitter.rsId "retweet")
   | B.isPrefixOf "!favorite" msg = cmdIfAdminT twitter admins nick s chan tmgr twinfo msg (tid Twitter.favoritesCreate Twitter.statusId "favorite")
   | B.isPrefixOf "!unfavorite" msg = cmdIfAdminT twitter admins nick s chan tmgr twinfo msg (tid Twitter.favoritesDestroy Twitter.statusId "unfavorite")
+  | B.isPrefixOf "!follow" msg = cmdIfAdminT twitter admins nick s chan tmgr twinfo msg (tusrname Twitter.friendshipsCreate "follow")
+  | B.isPrefixOf "!unfollow" msg = cmdIfAdminT twitter admins nick s chan tmgr twinfo msg (tusrname Twitter.friendshipsDestroy "unfollow")
   | otherwise = return ()
   where chan = fromJust $ mChan m
         msg = mMsg m
