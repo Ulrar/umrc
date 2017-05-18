@@ -5,7 +5,7 @@
 -- can do whatever you want with this stuff. If we meet some day, and you think
 -- this stuff is worth it, you can buy me a beer in return
 
-module Twitter (tweet, replytweet, deletetweet, retweet) where
+module Twitter (tweet, replytweet, deletetweet, tid) where
 
 import Control.Lens
 import Network.SimpleIRC                    (sendMsg)
@@ -35,10 +35,10 @@ deletetweet mgr twinfo msg s chan = do
       sendMsg s chan "Deleted !"
     _ -> sendMsg s chan "Usage : !delete <id>"
 
-retweet mgr twinfo msg s chan = do
+tid f fd cmd mgr twinfo msg s chan = do
   let id = (B.drop 1 $ B.dropWhile (/= ' ') msg)
   case reads (B.unpack id) :: [(Integer,String)] of
     [(id', "")] -> do
-      st <- Twitter.call twinfo mgr $ Twitter.retweetId id'
-      sendMsg s chan $ B.pack $ "Retweeted ! (id : " ++ (show $ Twitter.rsId st) ++ ")"
-    _ -> sendMsg s chan "Usage : !retweet <id>"
+      st <- Twitter.call twinfo mgr $ f id'
+      sendMsg s chan $ B.pack $ cmd ++ "ed ! (id : " ++ (show $ fd st) ++ ")"
+    _ -> sendMsg s chan $ B.pack $ "Usage : !" ++ cmd ++ " <id>"
