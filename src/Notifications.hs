@@ -78,15 +78,15 @@ getNotifs client chan s = do
 -- Twitter
 --
 
-fuck status = (T.unpack $ Twitter.userScreenName $ Twitter.statusUser status) ++ " tweeted : " ++ (T.unpack $ Twitter.statusText status) ++ " (id : " ++ (show $ Twitter.statusId status) ++ ")"
+bSt status = (T.unpack $ Twitter.userScreenName $ Twitter.statusUser status) ++ " tweeted : " ++ (T.unpack $ Twitter.statusText status) ++ " (id : " ++ (show $ Twitter.statusId status) ++ ")"
 
-func s chan status = do
-  sendMsg s chan $ B.pack $ fuck status
+dispStAndGetId s chan status = do
+  sendMsg s chan $ B.pack $ bSt status
   return $ Twitter.statusId status
 
 getTMentions lastid mgr twinfo chan s = do
   id <- readIORef lastid
   statuses <- Twitter.call twinfo mgr $ Twitter.mentionsTimeline & Twitter.sinceId ?~ id
-  ids <- mapM (func s chan) statuses
+  ids <- mapM (dispStAndGetId s chan) statuses
   writeIORef lastid $ maximum ids
   return ()
