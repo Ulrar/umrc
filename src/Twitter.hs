@@ -9,12 +9,13 @@ module Twitter (tweet, replytweet, deletetweet, tid, tusrname, tgetLastId, handl
 
 import Web.Twitter.Conduit.Response
 import Control.Lens
-import Network.SimpleIRC                    (sendMsg)
-import Network.HTTP.Types.Status            (Status(..))
-import qualified Web.Twitter.Conduit        as Twitter
-import qualified Web.Twitter.Types          as Twitter
-import qualified Data.ByteString.Char8      as B
-import qualified Data.Text                  as T
+import Network.SimpleIRC                         (sendMsg)
+import Network.HTTP.Types.Status                 (Status(..))
+import qualified Web.Twitter.Conduit             as Twitter
+import qualified Web.Twitter.Types               as Twitter
+import qualified Web.Twitter.Conduit.Parameters  as TwitterP
+import qualified Data.ByteString.Char8           as B
+import qualified Data.Text                       as T
 
 tweet mgr twinfo msg s chan = do
   let tmsg = B.drop 1 $ B.dropWhile (/= ' ') msg
@@ -25,7 +26,7 @@ replytweet mgr twinfo msg s chan = do
   let id = B.drop 1 $ B.dropWhile (/= ' ') msg
   case reads (B.unpack id) :: [(Integer,String)] of
     [(id', repl)] -> do
-      st <- Twitter.call twinfo mgr $ Twitter.update (T.pack repl) & Twitter.inReplyToStatusId ?~ id'
+      st <- Twitter.call twinfo mgr $ Twitter.update (T.pack repl) & TwitterP.inReplyToStatusId ?~ id'
       sendMsg s chan $ B.pack $ "Reply tweeted ! (id : " ++ (show $ Twitter.statusId st) ++ ")"
     _ -> sendMsg s chan "Usage : !replytweet <id> <text>"
 
@@ -52,7 +53,7 @@ tusrname f cmd mgr twinfo msg s chan = do
 
 tgetLastId :: Twitter.Manager -> Twitter.TWInfo -> IO Integer
 tgetLastId mgr twinfo = do
-  st <- Twitter.call twinfo mgr $ Twitter.mentionsTimeline & Twitter.count ?~ 1
+  st <- Twitter.call twinfo mgr $ Twitter.mentionsTimeline & TwitterP.count ?~ 1
   case st of
     []    -> return 0
     (x:t) -> return $ Twitter.statusId x
