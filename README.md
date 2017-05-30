@@ -20,6 +20,7 @@ Available commands for twitter are :
 !reply <id> <text>
 !delete <id>
 !retweet <id>
+!rt <id> # alias for !retweet
 !favorite <id>
 !unfavorite <id>
 !follow <text>
