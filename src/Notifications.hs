@@ -11,17 +11,18 @@ module Notifications (getNotifs, getTMentions) where
 import Web.Hastodon
 import WordWrap
 import Control.Lens
-import Network.SimpleIRC                    (sendMsg)
-import Control.Monad                        (mapM, mapM_, when)
-import Data.Maybe                           (isJust, fromJust)
-import Data.IORef                           (readIORef, writeIORef)
-import Text.HTML.TagSoup                    (parseTags, innerText)
-import qualified Web.Twitter.Conduit        as Twitter
-import qualified Web.Twitter.Types          as Twitter
-import qualified Data.ByteString.Char8      as B
-import qualified Data.ByteString.UTF8       as BU
-import qualified Data.List                  as L
-import qualified Data.Text                  as T
+import Network.SimpleIRC                        (sendMsg)
+import Control.Monad                            (mapM, mapM_, when)
+import Data.Maybe                               (isJust, fromJust)
+import Data.IORef                               (readIORef, writeIORef)
+import Text.HTML.TagSoup                        (parseTags, innerText)
+import qualified Web.Twitter.Conduit            as Twitter
+import qualified Web.Twitter.Types              as Twitter
+import qualified Web.Twitter.Conduit.Parameters as TwitterP
+import qualified Data.ByteString.Char8          as B
+import qualified Data.ByteString.UTF8           as BU
+import qualified Data.List                      as L
+import qualified Data.Text                      as T
 
 --
 -- Mastodon
@@ -87,7 +88,7 @@ dispStAndGetId s chan status = do
 
 getTMentions lastid mgr twinfo chan s = do
   id <- readIORef lastid
-  statuses <- Twitter.call twinfo mgr $ Twitter.mentionsTimeline & Twitter.sinceId ?~ id
+  statuses <- Twitter.call twinfo mgr $ Twitter.mentionsTimeline & TwitterP.sinceId ?~ id
   ids <- mapM (dispStAndGetId s chan) statuses
   writeIORef lastid $ maximum ids
   return ()
