@@ -14,6 +14,7 @@ import Network.HTTP.Types.Status            (statusCode, statusMessage)
 import Network.SimpleIRC                    (sendMsg)
 import Network.HTTP.Simple                  (JSONException(JSONParseException, JSONConversionException), getResponseStatus)
 import qualified Data.ByteString.Char8      as B
+import qualified Data.ByteString.UTF8       as BU
 import qualified Data.Text                  as T
 
 handleError resp s chan = do
@@ -24,7 +25,7 @@ handleError resp s chan = do
 -- Reply to an existing toot, takes a numeric ID and text
 replytoot client s msg chan = do
   let id = B.drop 1 $ B.dropWhile (/= ' ') msg
-  case reads (B.unpack id) :: [(Int,String)] of
+  case reads (BU.toString id) :: [(Int,String)] of
     [(id', repl)] -> do
       let repl' = T.unpack $ T.replace "\\n" "\n" $ T.pack repl
       res <- if head repl' == '-'
@@ -42,7 +43,7 @@ replytoot client s msg chan = do
 -- Helper to call a function taking a numeric ID
 mid f cmd client s msg chan = do
   let id = (B.drop 1 $ B.dropWhile (/= ' ') msg)
-  case reads (B.unpack id) :: [(Int,String)] of
+  case reads (BU.toString id) :: [(Int,String)] of
     [(id', "")] -> do
       res <- f id' client
       case res of
@@ -55,10 +56,10 @@ toot client s msg chan = do
   let tmsg = toStrict $ replace (B.pack "\\n") (B.pack "\n") $ B.drop 1 $ B.dropWhile (/= ' ') msg
   res <- if B.head tmsg == '-'
     then
-      let vis = B.unpack $ B.drop 1 $ B.takeWhile (/= ' ') tmsg in
-      postStatusVis vis (B.unpack $ B.drop 1 $ B.dropWhile (/= ' ') tmsg) client
+      let vis = BU.toString $ B.drop 1 $ B.takeWhile (/= ' ') tmsg in
+      postStatusVis vis (BU.toString $ B.drop 1 $ B.dropWhile (/= ' ') tmsg) client
     else
-      postStatus (B.unpack tmsg) client
+      postStatus (BU.toString tmsg) client
   case res of
     Left (JSONParseException _ resp _) -> handleError resp s chan
     Left (JSONConversionException _ resp _) -> handleError resp s chan
@@ -66,7 +67,7 @@ toot client s msg chan = do
 
 followUnfollow f cmd client s msg chan = do
   let tmsg = (B.drop 1 $ B.dropWhile (/= ' ') msg)
-  res <- getSearchedAccounts (B.unpack tmsg) client
+  res <- getSearchedAccounts (BU.toString tmsg) client
   case res of
     Left (JSONParseException _ resp _) -> handleError resp s chan
     Left (JSONConversionException _ resp _) -> handleError resp s chan
@@ -81,7 +82,7 @@ followUnfollow f cmd client s msg chan = do
 
 deletetoot client s msg chan = do
   let id = (B.drop 1 $ B.dropWhile (/= ' ') msg)
-  case reads (B.unpack id) :: [(Int,String)] of
+  case reads (BU.toString id) :: [(Int,String)] of
     [(id', "")] -> do
       res <- deleteStatus id' client
       if res

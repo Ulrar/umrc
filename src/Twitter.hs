@@ -25,7 +25,7 @@ tweet mgr twinfo msg s chan = do
 
 replytweet mgr twinfo msg s chan = do
   let id = B.drop 1 $ B.dropWhile (/= ' ') msg
-  case reads (B.unpack id) :: [(Integer,String)] of
+  case reads (BU.toString id) :: [(Integer,String)] of
     [(id', repl)] -> do
       st <- Twitter.call twinfo mgr $ Twitter.update (T.pack repl) & TwitterP.inReplyToStatusId ?~ id'
       sendMsg s chan $ B.pack $ "Reply tweeted ! (id : " ++ (show $ Twitter.statusId st) ++ ")"
@@ -33,7 +33,7 @@ replytweet mgr twinfo msg s chan = do
 
 deletetweet mgr twinfo msg s chan = do
   let id = (B.drop 1 $ B.dropWhile (/= ' ') msg)
-  case reads (B.unpack id) :: [(Integer,String)] of
+  case reads (BU.toString id) :: [(Integer,String)] of
     [(id', "")] -> do
       st <- Twitter.call twinfo mgr $ Twitter.destroyId id'
       sendMsg s chan "Deleted !"
@@ -41,7 +41,7 @@ deletetweet mgr twinfo msg s chan = do
 
 tid f fd cmd mgr twinfo msg s chan = do
   let id = (B.drop 1 $ B.dropWhile (/= ' ') msg)
-  case reads (B.unpack id) :: [(Integer,String)] of
+  case reads (BU.toString id) :: [(Integer,String)] of
     [(id', "")] -> do
       st <- Twitter.call twinfo mgr $ f id'
       sendMsg s chan $ B.pack $ cmd ++ "ed ! (id : " ++ (show $ fd st) ++ ")"
@@ -49,7 +49,7 @@ tid f fd cmd mgr twinfo msg s chan = do
 
 tusrname f cmd mgr twinfo msg s chan = do
   let txt = (B.drop 1 $ B.dropWhile (/= ' ') msg)
-  user <- Twitter.call twinfo mgr $ f $ Twitter.ScreenNameParam $ B.unpack txt
+  user <- Twitter.call twinfo mgr $ f $ Twitter.ScreenNameParam $ BU.toString txt
   sendMsg s chan $ B.pack $ (T.unpack $ Twitter.userScreenName user) ++ " " ++ cmd ++ "ed !"
 
 tgetLastId :: Twitter.Manager -> Twitter.TWInfo -> IO Integer

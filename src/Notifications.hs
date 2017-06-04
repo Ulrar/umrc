@@ -19,6 +19,7 @@ import Text.HTML.TagSoup                    (parseTags, innerText)
 import qualified Web.Twitter.Conduit        as Twitter
 import qualified Web.Twitter.Types          as Twitter
 import qualified Data.ByteString.Char8      as B
+import qualified Data.ByteString.UTF8       as BU
 import qualified Data.List                  as L
 import qualified Data.Text                  as T
 
@@ -39,10 +40,10 @@ dispStatus status action dn nick s chan = do
   let w = wrapLine 400 $ (buildNotifPrefix dn nick action) ++ txt ++ " (id : " ++ id ++ ")"
   case w of
     [] -> return ()
-    (x:[]) -> sendMsg s chan $ B.pack x
+    (x:[]) -> sendMsg s chan $ BU.fromString x
     (x:t)  -> do
-      sendMsg s chan $ B.pack $ x
-      mapM_ (\y -> sendMsg s chan $ B.pack y) t
+      sendMsg s chan $ BU.fromString $ x
+      mapM_ (\y -> sendMsg s chan $ BU.fromString y) t
 
 -- Connect to the API to get new notifs, print them on IRC then clear them
 getNotifs client chan s = do
@@ -58,7 +59,7 @@ getNotifs client chan s = do
          let mstatus = notificationStatus n
          case notificationType n of
             "follow" -> do
-              sendMsg s chan $ B.pack $ buildNotifPrefix dn nick "started following"
+              sendMsg s chan $ BU.fromString $ buildNotifPrefix dn nick "started following"
               return ()
             "reblog" -> do
               when (isJust mstatus) $ do
@@ -81,7 +82,7 @@ getNotifs client chan s = do
 bSt status = (T.unpack $ Twitter.userScreenName $ Twitter.statusUser status) ++ " tweeted : " ++ (T.unpack $ Twitter.statusText status) ++ " (id : " ++ (show $ Twitter.statusId status) ++ ")"
 
 dispStAndGetId s chan status = do
-  sendMsg s chan $ B.pack $ bSt status
+  sendMsg s chan $ BU.fromString $ bSt status
   return $ Twitter.statusId status
 
 getTMentions lastid mgr twinfo chan s = do
