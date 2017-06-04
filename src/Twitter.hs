@@ -15,11 +15,12 @@ import qualified Web.Twitter.Conduit             as Twitter
 import qualified Web.Twitter.Types               as Twitter
 import qualified Web.Twitter.Conduit.Parameters  as TwitterP
 import qualified Data.ByteString.Char8           as B
+import qualified Data.ByteString.UTF8            as BU
 import qualified Data.Text                       as T
 
 tweet mgr twinfo msg s chan = do
   let tmsg = B.drop 1 $ B.dropWhile (/= ' ') msg
-  st <- Twitter.call twinfo mgr $ Twitter.update $ T.pack $ B.unpack tmsg
+  st <- Twitter.call twinfo mgr $ Twitter.update $ T.pack $ BU.toString tmsg
   sendMsg s chan $ B.pack $ "Tweeted ! (id : " ++ (show $ Twitter.statusId st) ++ ")"
 
 replytweet mgr twinfo msg s chan = do
