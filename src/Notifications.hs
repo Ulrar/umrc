@@ -24,19 +24,28 @@ import qualified Data.ByteString.UTF8           as BU
 import qualified Data.List                      as L
 import qualified Data.Text                      as T
 
+isEmoji c
+  | uc >= 0x1F600 && uc <= 0x1F64F = True
+  | uc >= 0x1F300 && uc <= 0x1F5FF = True
+  | uc >= 0x1F680 && uc <= 0x1F6FF = True
+  | uc >= 0x1F1E0 && uc <= 0x1F1FF = True
+  | otherwise = False
+  where
+    uc =  fromEnum c
+
 --
 -- Mastodon
 --
 
 buildNotifPrefix dispName nick action = if L.length dispName > 0
   then
-    dispName ++ " (" ++ nick ++ ") " ++ action
+    (filter (not . isEmoji) dispName) ++ " (" ++ nick ++ ") " ++ action
   else
     nick ++ " : " ++ action
 
 dispStatus status action dn nick s chan = do
   let t = parseTags $ statusContent status
-  let txt = innerText t
+  let txt = filter (not . isEmoji) $ innerText t
   let id = show $ statusId status
   let w = wrapLine 400 $ (buildNotifPrefix dn nick action) ++ txt ++ " (id : " ++ id ++ ")"
   case w of
@@ -80,7 +89,7 @@ getNotifs client chan s = do
 -- Twitter
 --
 
-bSt status = (T.unpack $ Twitter.userScreenName $ Twitter.statusUser status) ++ " tweeted : " ++ (T.unpack $ Twitter.statusText status) ++ " (id : " ++ (show $ Twitter.statusId status) ++ ")"
+bSt status = (T.unpack $ Twitter.userScreenName $ Twitter.statusUser status) ++ " tweeted : " ++ (filter (not . isEmoji) $ T.unpack $ Twitter.statusText status) ++ " (id : " ++ (show $ Twitter.statusId status) ++ ")"
 
 dispStAndGetId s chan status = do
   sendMsg s chan $ BU.fromString $ bSt status
