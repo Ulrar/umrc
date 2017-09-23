@@ -15,7 +15,7 @@ import Network.SimpleIRC                        (sendMsg)
 import Control.Monad                            (mapM, mapM_, when)
 import Data.Maybe                               (isJust, fromJust)
 import Data.IORef                               (readIORef, writeIORef)
-import Text.HTML.TagSoup                        (parseTags, innerText)
+import Text.HTML.TagSoup                        (parseTags, innerText, isTagOpen, fromAttrib)
 import qualified Web.Twitter.Conduit            as Twitter
 import qualified Web.Twitter.Types              as Twitter
 import qualified Web.Twitter.Conduit.Parameters as TwitterP
@@ -46,8 +46,10 @@ buildNotifPrefix dispName nick action = if L.length dispName > 0
 dispStatus status action dn nick s chan = do
   let t = parseTags $ statusContent status
   let txt = filter (not . isEmoji) $ innerText t
+  let imgs = L.concat $ L.map (\t -> if isTagOpen t then fromAttrib "src" t else "") t
+  let limgs = if length imgs > 0 then " -- attached img : " ++ imgs else ""
   let id = show $ statusId status
-  let w = wrapLine 400 $ (buildNotifPrefix dn nick action) ++ txt ++ " (id : " ++ id ++ ")"
+  let w = wrapLine 400 $ (buildNotifPrefix dn nick action) ++ txt ++ limgs ++ " (id : " ++ id ++ ")"
   case w of
     [] -> return ()
     (x:[]) -> sendMsg s chan $ BU.fromString x
