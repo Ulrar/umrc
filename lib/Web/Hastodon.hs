@@ -119,7 +119,7 @@ instance FromJSON OAuthResponse where
     OAuthResponse <$> (v .: T.pack "access_token")
 
 data Account = Account {
-  accountId :: Int,
+  accountId :: String,
   accountUsername :: String,
   accountAcct :: String,
   accountDisplayName :: String,
@@ -163,7 +163,7 @@ instance FromJSON Application where
                 <*> (v .:? T.pack "website")
 
 data Attachment = Attachment {
-  attachmentId :: Int,
+  attachmentId :: String,
   attachmentType :: String,
   attachmentUrl :: String,
   attachmentRemoteUrl :: String,
@@ -218,7 +218,7 @@ data Mention = Mention {
   mentionUrl :: String,
   mentionUsername :: String,
   mentionAcct :: String,
-  mentionId :: Int
+  mentionId :: String
 } deriving (Show)
 instance FromJSON Mention where
   parseJSON (Object v) =
@@ -228,7 +228,7 @@ instance FromJSON Mention where
             <*> (v .: T.pack "id")
 
 data Notification = Notification {
-  notificationId :: Int,
+  notificationId :: String,
   notificationType :: String,
   notificationCreatedAt :: String,
   notificationAccount :: Account,
@@ -256,7 +256,7 @@ instance FromJSON OAuthClient where
                 <*> (v .: T.pack "client_secret")
 
 data Relationship = Relationship {
-  relationshipId :: Int,
+  relationshipId :: String,
   relationshipFollowing :: Bool,
   relationshipFollowed_by :: Bool,
   relationshipBlocking :: Bool,
@@ -273,7 +273,7 @@ instance FromJSON Relationship where
                  <*> (v .: T.pack "requested")
 
 data Report = Report {
-  reportId :: Int,
+  reportId :: String,
   reportActionToken :: String
 } deriving (Show)
 instance FromJSON Report where
@@ -293,12 +293,12 @@ instance FromJSON Results where
             <*> (v .: T.pack "hashtags")
 
 data Status = Status {
-  statusId :: Int,
+  statusId :: String,
   statusUri :: String,
   statusUrl :: String,
   statusAccount :: Account,
-  statusInReplyToId :: Maybe Int,
-  statusInReplyToAccountId :: Maybe Int,
+  statusInReplyToId :: Maybe String,
+  statusInReplyToAccountId :: Maybe String,
   statusReblog :: Maybe Status,
   statusContent :: String,
   statusCreatedAt :: String,
@@ -449,14 +449,14 @@ getSearchedAccounts query client = do
   res <- getHastodonResponseJSON (pSearchAccounts ++ "?q=" ++ query) client
   return (getResponseBody res :: Either JSONException [Account])
 
-postFollow :: Int -> HastodonClient -> IO (Either JSONException Relationship)
+postFollow :: String -> HastodonClient -> IO (Either JSONException Relationship)
 postFollow id client = do
-  res <- postAndGetHastodonResponseJSON (replace ":id" (show id) pFollow) [] client
+  res <- postAndGetHastodonResponseJSON (replace ":id" id pFollow) [] client
   return (getResponseBody res :: Either JSONException Relationship)
 
-postUnfollow :: Int -> HastodonClient -> IO (Either JSONException Relationship)
+postUnfollow :: String -> HastodonClient -> IO (Either JSONException Relationship)
 postUnfollow id client = do
-  res <- postAndGetHastodonResponseJSON (replace ":id" (show id) pUnfollow) [] client
+  res <- postAndGetHastodonResponseJSON (replace ":id" id pUnfollow) [] client
   return (getResponseBody res :: Either JSONException Relationship)
 
 postBlock :: Int -> HastodonClient -> IO (Either JSONException Relationship)
